@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "node_modules/@prisma"
 }
 
 datasource db {
@@ -14,17 +13,17 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@map("Account")
 }
 
 model User {
@@ -35,4 +34,33 @@ model User {
   passwordHash  String
   image         String?
   accounts      Account[]
+  member        Member?
+
+  @@map("User")
+}
+
+model Member {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  name        String
+  gender      String
+  dateOfBirth DateTime
+  created     DateTime @default(now())
+  updated     DateTime @default(now())
+  description String
+  city        String
+  country     String
+  image       String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos      Photo[]
+
+  @@map("Member")
+}
+
+model Photo {
+  id       String  @id @default(cuid())
+  url      String
+  publicId String?
+  memberId String
+  member   Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }

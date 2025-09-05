@@ -1,0 +1,11 @@
+  
+
+services:
+  postgres:
+    image: postgres:15
+    
+    container_name: postgres_db
+    environment:
+      - POSTGRES_PASSWORD=postgrespw
+    ports:
+      - "5433:5432"
