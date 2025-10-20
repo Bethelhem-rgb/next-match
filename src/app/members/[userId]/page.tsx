@@ -1,4 +1,4 @@
-import { getMembersByUserId } from '@/app/actions/memberActions'
+import { getMemberByUserId } from '@/app/actions/memberActions'
 import { CardBody, CardHeader, Divider } from '@heroui/react';
 import { notFound } from 'next/navigation';
 import React from 'react'
@@ -7,7 +7,7 @@ export default async function MemberDetailedPage({params}
   :{params:Promise<{userId:string}>}) {
 
   const{userId} =await params;
-  const member = await getMembersByUserId(userId);
+  const member = await getMemberByUserId(userId);
   if(!member) return notFound();
   return (
     <> 

@@ -23,20 +23,17 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@map("Account")
 }
 
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String?   @unique
   emailVerified DateTime?
   passwordHash  String
   image         String?
   accounts      Account[]
   member        Member?
-
-  @@map("User")
 }
 
 model Member {
@@ -45,16 +42,16 @@ model Member {
   name        String
   gender      String
   dateOfBirth DateTime
-  created     DateTime @default(now())
-  updated     DateTime @default(now())
-  description String
+  created   DateTime @default(now())
+  updated   DateTime @default(now())
+  description String?
   city        String
   country     String
   image       String?
+  sourceLikes Like[]   @relation("source")
+  targetLikes Like[]   @relation("target")
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   photos      Photo[]
-
-  @@map("Member")
 }
 
 model Photo {
@@ -63,4 +60,13 @@ model Photo {
   publicId String?
   memberId String
   member   Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  sourceMemberId String
+  targetMemberId String
+  sourceMember Member @relation("source", fields: [sourceMemberId], references: [id], onDelete: Cascade)
+  targetMember Member @relation("target", fields: [targetMemberId], references: [id], onDelete: Cascade)
+
+  @@id([sourceMemberId, targetMemberId])
 }

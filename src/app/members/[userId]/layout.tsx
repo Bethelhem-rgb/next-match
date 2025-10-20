@@ -3,7 +3,7 @@ import React, { ReactNode } from 'react'
 import MemberSidebar from '../MemberSidebar';
 import { notFound } from 'next/navigation';
 import { Card } from '@heroui/react';
-import { getMembersByUserId } from '@/app/actions/memberActions';
+import { getMemberByUserId } from '@/app/actions/memberActions';
 export default async function Layout({
   children,
   params,
@@ -13,7 +13,7 @@ export default async function Layout({
     params:Promise<{userId: string}>
    }) {
     const{userId}= await params;
-  const member = await getMembersByUserId(userId);
+  const member = await getMemberByUserId((await params).userId);
   if(!member) return notFound();
   return (
     <div className='grid grid-cols-12 gap-5 h-[80vh]'> 

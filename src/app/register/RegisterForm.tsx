@@ -18,7 +18,7 @@ export default function RegisterForm() {
   const onsubmit = async (data: RegisterSchema) => {
   try {
     const result = await registerUser(data);
-
+    console.log({result});
     if (result.status === 'success') {
       console.log('user registered successfully');
     } else {

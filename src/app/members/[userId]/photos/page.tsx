@@ -1,10 +1,10 @@
 import { getMemberPhotosByUserId } from '@/app/actions/memberActions'
-import { CardHeader, Divider, CardBody,Image } from '@heroui/react'
+import { CardHeader, Divider, CardBody, Image } from '@heroui/react'
 import React from 'react'
 
-export default async function PhotosPage({params}:{params:Promise<{userId:string}>}) {
-  const {userId} = await params;
-  const photos = await getMemberPhotosByUserId(userId);
+export default async function PhotosPage({params}: {params:{userId:string}}) {
+  
+  const photos = await getMemberPhotosByUserId(params.userId);
   return (
     <>
      <CardHeader className='text-2xl font-semibold text-secondary'>
@@ -17,7 +17,7 @@ export default async function PhotosPage({params}:{params:Promise<{userId:string
           <div key ={photo.id}>
             <Image 
             width ={300}
-        
+            
             src = {photo.url}
             alt = 'Image of member'
             className='object-cover aspect-square'
