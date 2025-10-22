@@ -27,8 +27,8 @@ model Account {
 
 model User {
   id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
+  email          String?  @unique
+  name           String  
   emailVerified DateTime?
   passwordHash  String
   image         String?
@@ -42,17 +42,19 @@ model Member {
   name        String
   gender      String
   dateOfBirth DateTime
-  created   DateTime @default(now())
-  updated   DateTime @default(now())
   description String?
   city        String
   country     String
   image       String?
-  sourceLikes Like[]   @relation("source")
-  targetLikes Like[]   @relation("target")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+ 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   photos      Photo[]
+  likesGiven  Like[]   @relation("sourceLikes")
+  likesReceived Like[] @relation("targetLikes")
 }
+
 
 model Photo {
   id       String  @id @default(cuid())
@@ -63,10 +65,12 @@ model Photo {
 }
 
 model Like {
+  
   sourceMemberId String
   targetMemberId String
-  sourceMember Member @relation("source", fields: [sourceMemberId], references: [id], onDelete: Cascade)
-  targetMember Member @relation("target", fields: [targetMemberId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  sourceMember   Member @relation("sourceLikes", fields: [sourceMemberId], references: [id])
+  targetMember   Member @relation("targetLikes", fields: [targetMemberId], references: [id])
 
   @@id([sourceMemberId, targetMemberId])
 }

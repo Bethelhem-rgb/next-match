@@ -12,16 +12,16 @@ import { usePathname } from 'next/navigation';
 type Props = {
   member:Member
 }
-export default async function MemberSidebar({member}:Props) {
+export default  function MemberSidebar({member}:Props) {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const pathname = usePathname();
-  const basePath = `/members/${member.userId}`
+  const basePath = `/members/${member.userId}`;
 
   const navLinks = [
     {name: 'Profile', href: `${basePath}`},
     {name: 'Photos', href: `${basePath}/photos`},
-    {name: 'chat', href: `${basePath}/chat`}
-  ]
+    {name: 'chat', href: `${basePath}/chat`},
+  ];
     
   return (
     <Card className='w-full mt-10 items-center h-[80vh]'>
@@ -43,7 +43,7 @@ export default async function MemberSidebar({member}:Props) {
           </div>
           <Divider className='my-3'/>
           <nav className='flex flex-col p-4 ml-4 text-2xl gap-4'>
-            {navLinks.map(link=>(
+            {navLinks.map((link)=>(
               <Link
               href={link.href}
               key={link.name}
@@ -72,5 +72,5 @@ Go back
       
     </Card>
     
-  )
+          ); 
 }

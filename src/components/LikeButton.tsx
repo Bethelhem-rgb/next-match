@@ -1,18 +1,20 @@
 'use client';
 import { toggleLikeMember } from '@/app/actions/likeActions';
 import { useRouter } from 'next/navigation';
-import React from 'react'
+import React, { useState } from 'react'
 import {AiFillHeart, AiOutlineHeart} from 'react-icons/ai';
 type Props = {
     targetId: string;
     hasLiked: boolean;
     refreshLikes?:()=>void;
-}
+};
 export default function LikeButton({targetId,hasLiked,refreshLikes}: Props) {
-    const router = useRouter();
+    const [liked,setLiked]= useState(hasLiked);
     async function toggleLike(){
-        await toggleLikeMember(targetId,hasLiked);
-        router.refresh();
+       setLiked(!liked);
+       
+       await toggleLikeMember(targetId,liked);
+        refreshLikes?.();
     
     }
   return (
@@ -21,5 +23,5 @@ export default function LikeButton({targetId,hasLiked,refreshLikes}: Props) {
         <AiFillHeart size ={24} className={hasLiked ? 'fill-rose-500':'fill-neutral-500 /70'}/>
 
         </div>
-  )
+  );
 }

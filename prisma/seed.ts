@@ -4,10 +4,9 @@ import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 async function seedMembers(){
-    await Promise.all(
-        membersData.map(async (member)=>
-        prisma.user.create({
-        
+    for(const member of membersData){
+        const user = await prisma.user.create({
+
    
             data:{
                 email: member.email,
@@ -17,15 +16,17 @@ async function seedMembers(){
                 image:member.image,
                 member:{
                     create: {
-                        dateOfBirth: new Date(member.dateOfBirth),
-                        gender: member.gender,
                         name: member.name,
-                        createdAt: new Date(member.created),
-                        updatedAt: new Date(member.lastActive),
+                        gender: member.gender,
+                        
+                        dateOfBirth: new Date(member.dateOfBirth),
                         description: member.description||"",
                         city: member.city,
                         country: member.country,
                         image:member.image,
+                        createdAt: new Date(member.created),
+                        updatedAt: new Date(member.lastActive),
+                        
                         photos: {
                             create: [
                                { url: member.image,
@@ -37,13 +38,14 @@ async function seedMembers(){
                     },
                 },
             
-} )));
+} );
+console.log(`Created user ${user.name}with member ${member.name}`);
 }
-
+}
 async function main() {
     await seedMembers();
 }
-main().catch(e =>{
+main().catch((e )=>{
      console.error(e);
     process.exit(1);
 }).finally(async()=>{

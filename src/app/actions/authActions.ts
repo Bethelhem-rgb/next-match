@@ -11,7 +11,7 @@ import { AuthError } from "next-auth";
 import { ActionResult } from "@/types";
 import { User}from '@prisma/client';
 
-import { ZodError } from "zod";
+
 export async function signInUser(data: LoginSchema):Promise<ActionResult<string>>{
   try {
     const result = await signIn('credentials',{
@@ -34,7 +34,7 @@ export async function signInUser(data: LoginSchema):Promise<ActionResult<string>
           
       }
     } else{
-      return {status:'error',error:'Something else went wrong'}
+      return {status:'error',error:'Something else went wrong'};
     }
   }
 }
@@ -55,17 +55,31 @@ return { status:'error',error: issues.map((e) => e.message).join(',')};
     where:{email}
   });
   if(existingUser) return {status:'error',error:'User already exists'};
-  const User = await prisma.user.create({
+  const newUser = await prisma.$transaction(async (tx)=>{
+    const createdUser = await tx.user.create({
+  
     data: {
       name,
       email,
       passwordHash:hashedPassword
     }
+  });
+  await tx.member.create({
+    data: {
+      userId:createdUser.id,
+      name:createdUser.name,
+      gender:'Unknown',
+      dateOfBirth: new Date('2000-01-01'),
+      city:'Unknown',
+      country:'Unknown',
+    }
   })
-  return {status: 'success',data: User}
+  return createdUser;
+});
+return {status: 'success',data: newUser};
   } catch (error) {
     console.log(error);
-    return{status:'error',error:'Something went wrong'}
+    return{status:'error',error:'Something went wrong'};
   }
   
     }
