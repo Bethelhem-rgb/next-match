@@ -8,7 +8,7 @@ import React from 'react'
 type Props = {
     member: Member
     likeIds: string[]
-    refreshLikes?:()=>void;
+     refreshLikes?:()=>void;
 };
 export default function MemberCard({member,likeIds,refreshLikes}: Props) {
   const hasliked = likeIds.includes(member.userId);
