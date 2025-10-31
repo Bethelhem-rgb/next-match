@@ -1,137 +1,141 @@
-'use server';
+"use server";
 
 import prisma from "@/lib/prisma";
 import { getAuthUserId } from "./authActions";
-import { auth } from "@/auth";
 
-// Toggle like/unlike for a member
-export async function toggleLikeMember(targetMemberId: string, isLiked: boolean) { 
+async function getCurrentMember() {
+  const userId = await getAuthUserId();
+  if (!userId) throw new Error("Not authenticated");
+  const member = await prisma.member.findFirst({ where: { userId } });
+  if (!member) throw new Error("No member profile found for this user");
+  return member;
+}
+export async function toggleLikeMember(targetMemberId: string, isLiked: boolean) {
+  
+  
   try {
-    const userId = await getAuthUserId();
-    if (!userId) throw new Error("Not authenticated");
-
-    // Find source member (the logged-in user's member record)
-    const sourceMember = await prisma.member.findFirst({
+    
+   const userId = await getAuthUserId();
+   if (!userId) throw new Error('Not authenticated');
+   
+    // Find current user's member record
+    const sourceMember = await prisma.member.findUnique({
       where: { userId },
     });
+    if (!sourceMember) throw new Error('Source member not found for this user');
 
-    if (!sourceMember) throw new Error("Source member not found");
+    // Ensure target member exists
+    const targetMember = await prisma.member.findUnique({
+      where: { id: targetMemberId },
+    });
+    if (!targetMember) throw new Error('Target member not found');
 
-    if (isLiked) {
-      // Unlike (delete)
-      await prisma.like.delete({
-        where: {
-          sourceMemberId_targetMemberId: {
-            sourceMemberId: sourceMember.id,
-            targetMemberId,
-          },
-        },
-      });
-    } else {
-      // Like (create)
-      await prisma.like.create({
-        data: {
+    // Check if Like already exists
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        sourceMemberId_targetMemberId: {
           sourceMemberId: sourceMember.id,
           targetMemberId,
         },
-      });
-    }
-
-    // Optional: return updated like count
-    const likeCount = await prisma.like.count({
-      where: { targetMemberId },
+      },
     });
 
-    return { success: true, liked: !isLiked, likeCount };
+    //if (!isLiked) {
+      // Remove like
+      //
+   // } else {
+      // Remove existing like
+      if(existingLike){
+      await prisma.like.delete({
+        where: {
+           sourceMemberId_targetMemberId: {
+          sourceMemberId: sourceMember.id,
+          targetMemberId,
+        },
+      },
+      });
+    
+  
+    console.log(`💔 Unliked member ${targetMemberId}`);
+    
+  } else {
 
+await prisma.like.create({
+        data: {
+          
+            sourceMemberId: sourceMember.id,
+            targetMemberId,
+          },
+        
+     });
+     console.log(`❤️ Liked member ${targetMemberId}`);
+    }
+       return { success: true };
   } catch (error) {
-    console.error("toggleLikeMember error:", error);
+    console.error('Error in toggleLikeMember:', error);
     throw error;
   }
 }
-
-// --- Fetch IDs of liked members by current user ---
 export async function fetchCurrentUserLikeIds() {
-  try {
-    const userId = await getAuthUserId(); 
-    if (!userId) return [];
+  
+    const member = await getCurrentMember();
 
-    const sourceMember = await prisma.member.findFirst({
-      where: { userId },
-    });
-
-    if (!sourceMember) return [];
-
-    const likeIds = await prisma.like.findMany({
-      where: { sourceMemberId: sourceMember.id },
+    const likes = await prisma.like.findMany({
+      where: {
+        sourceMemberId: member.id,
+      },
       select: { targetMemberId: true },
     });
-
-    return likeIds.map(like => like.targetMemberId);
-
-  } catch (error) {
-    console.error("fetchCurrentUserLikeIds error:", error);
-    throw error;
+    return likes.map((like) => like.targetMemberId);
   }
-}
 
-// --- Fetch liked members (source / target / mutual) ---
-export async function fetchLikedMembers(type: 'source' | 'target' | 'mutual' = 'source') {
-  try {
-    const userId = await getAuthUserId();
-    if (!userId) throw new Error("Not authenticated");
-
-    const member = await prisma.member.findFirst({ where: { userId } });
-    if (!member) throw new Error("Logged-in user is not a member");
-
-    switch (type) {
+  // Fix this and you will see list of liked members
+  export async function fetchLikeMembers( type = 'source') {
+  
+    const member = await getCurrentMember();
+    switch(type){
       case 'source':
         return await fetchSourceLikes(member.id);
-      case 'target':
-        return await fetchTargetLikes(member.id);
-      case 'mutual':
-        return await fetchMutualLikes(member.id);
-      default:
-        return [];
+
+        case 'target':
+          return await fetchTargetLikes(member.id);
+
+          case 'mutual':
+            return await fetchMutualLikes(member.id);
+            default:
+              return [];
     }
 
-  } catch (error) {
-    console.error("fetchLikedMembers error:", error);
-    throw error;
-  }
-}
-
-// --- Helper functions ---
+  } 
 async function fetchSourceLikes(memberId: string) {
-  const list = await prisma.like.findMany({
-    where: { sourceMemberId: memberId },
-    include: { targetMember: true },
-  });
-  return list.map(x => x.targetMember);
+const likes = await prisma.like.findMany({
+  where:{sourceMemberId:memberId},
+  include:{targetMember:true}
+})
+return likes.map((like)=>like.targetMember);
 }
-
 async function fetchTargetLikes(memberId: string) {
-  const list = await prisma.like.findMany({
-    where: { targetMemberId: memberId },
-    include: { sourceMember: true },
-  });
-  return list.map(x => x.sourceMember);
+  const likes = await prisma.like.findMany({
+  where:{targetMemberId:memberId},
+  include:{sourceMember:true}
+})
+return likes.map((like)=>like.sourceMember);
 }
-
 async function fetchMutualLikes(memberId: string) {
-  const liked = await prisma.like.findMany({
-    where: { sourceMemberId: memberId },
-    select: { targetMemberId: true },
-  });
-  const likeIds = liked.map(x => x.targetMemberId);
-
-  const mutual = await prisma.like.findMany({
-    where: {
-      targetMemberId: memberId,
-      sourceMemberId: { in: likeIds },
+  const likedMembers = await prisma.like.findMany({
+    where:{sourceMemberId:memberId},
+    select:{targetMemberId:true}
+  })
+  const likedIds = likedMembers.map((x)=> x.targetMemberId);
+  const mutuals = await prisma .like.findMany({
+    where:{
+      AND:[
+        {targetMemberId:memberId},
+        {sourceMemberId:{in: likedIds}}
+      ]
     },
-    include: { sourceMember: true },
+    include: {sourceMember: true}
   });
-
-  return mutual.map(x => x.sourceMember);
+  return mutuals.map((like)=>like.sourceMember);
 }
+

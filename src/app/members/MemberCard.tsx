@@ -8,9 +8,9 @@ import React from 'react'
 type Props = {
     member: Member
     likeIds: string[]
-     refreshLikes?:()=>void;
-};
-export default function MemberCard({member,likeIds,refreshLikes}: Props) {
+     
+}
+export default function MemberCard({member,likeIds}: Props) {
   const hasliked = likeIds.includes(member.userId);
   const PreventLinkAction = (e:React.MouseEvent)=>{
     e.preventDefault();
@@ -31,7 +31,7 @@ export default function MemberCard({member,likeIds,refreshLikes}: Props) {
     />
     <div onClick={PreventLinkAction}>
     <div className='absolute top-3 right-3 z-50'>
-      <LikeButton targetId={member.userId} hasLiked={hasliked} refreshLikes={refreshLikes}/>
+      <LikeButton targetId={member.id} hasLiked={hasliked} />
     </div>
     </div>
     <CardFooter className='flex justify-start bg-black overflow-hidden absolute bottom-0 z-10 bg-dark-gradient'>

@@ -11,29 +11,26 @@ type Props = {
 export default function LikeButton({targetId,hasLiked,refreshLikes}: Props) {
     const [liked,setLiked]= useState(hasLiked);
     const [isPending,startTransition]= useTransition();
-    async function handletoggleLike(){
-       const newLiked = !liked ;
-
-       setLiked(newLiked);
-       try{
-       
-       await toggleLikeMember(targetId,liked);
-       startTransition(() => {
-        refreshLikes?.();
-    
-    });
-  } catch (error){
-    console.error('error toggling like:',error);
-    setLiked(!newLiked);
-  }
-  }
+    async function handleToggleLike() {
+      const newLiked = !liked;
+      console.log('targetId',targetId);
+      setLiked(newLiked);
+      try {
+          await toggleLikeMember(targetId, newLiked);
+           startTransition(() => refreshLikes?.()); 
+      } catch (error) {
+          console.error('error toggling like:', error);
+          setLiked(!newLiked); // revert on error
+      }
+}
   return (
-    <div onClick = {handletoggleLike} className= {`relative  cursor-pointer transition ${
+    <div onClick = { handleToggleLike} className= {`relative  cursor-pointer transition ${
       
       isPending ? 'opacity-60' :'hover:opacity-80'}`}
       title={liked ? 'unlike' : 'like'}>
         <AiOutlineHeart size={28} className='fill-white absolute -top-[2px] -right-[2px]' />
-        <AiFillHeart size ={24} className={hasLiked ? 'fill-rose-500':'fill-neutral-500 /70'}/>
+        <AiFillHeart size ={24}
+         className={liked ? 'fill-rose-500':'fill-neutral-500 /70'}/>
 
         </div>
   );
